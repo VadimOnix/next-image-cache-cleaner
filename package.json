@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "test": "vitest",
     "coverage": "vitest run --coverage",
+    "coverage-ui": "vitest --ui",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -34,6 +35,7 @@
     "@eslint/js": "^9.20.0",
     "@types/node": "^22.13.1",
     "@vitest/coverage-v8": "^3.0.5",
+    "@vitest/ui": "^3.0.5",
     "eslint": "^9.20.0",
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-unused-imports": "^4.1.4",
