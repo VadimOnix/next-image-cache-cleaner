@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# fix for windows systems
+PATH="/c/Program Files/nodejs:$HOME/AppData/Roaming/npm/:$PATH"
+
+npx --no -- commitlint --edit
+npx git-conventional-commits commit-msg-hook "$1"
