@@ -5,10 +5,9 @@ convention:
     - fix
     - perf
     - refactor
-    - style
     - test
     - build
-    - ops
+    - ci
     - docs
     - chore
     - merge
