@@ -6,14 +6,16 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "start": "node dist/next-image-cache-cleaner.cjs",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "test": "vitest",
     "coverage": "vitest run --coverage",
     "coverage-ui": "vitest --ui",
-    "prepare": "husky"
+    "format": "prettier . --check",
+    "format:fix": "prettier --write .",
+    "lint": "eslint . --quiet",
+    "lint:fix": "eslint . --fix",
+    "prepare": "husky",
+    "start": "node dist/next-image-cache-cleaner.cjs",
+    "test": "vitest",
+    "ts-check": "tsc --noEmit"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
