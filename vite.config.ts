@@ -9,7 +9,25 @@ export default defineConfig({
       formats: ['cjs'],
     },
     rollupOptions: {
-      external: ['fs', 'path'],
+      external: [
+        'fs',
+        'path',
+        'os',
+        'crypto',
+        'child_process',
+        'fs/promises',
+        'events',
+        'pino',
+        'pino-pretty',
+        'chokidar',
+      ],
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            return 'vendor'
+          }
+        },
+      },
     },
     outDir: 'dist',
     emptyOutDir: true,
@@ -20,7 +38,7 @@ export default defineConfig({
       provider: 'v8',
       enabled: true,
       reporter: ['text', 'json', 'html'],
-      exclude: ['./*.js', ...coverageConfigDefaults.exclude],
+      exclude: ['./*.js', './dist', ...coverageConfigDefaults.exclude],
     },
   },
 })

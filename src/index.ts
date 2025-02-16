@@ -1,17 +1,28 @@
 import 'dotenv/config'
 
-import chokidar from 'chokidar'
-import path from 'path'
+import { CacheCleaner } from './CacheCleaner'
+import { createLoggerInstance } from './logger'
 
-import { logger } from './logger'
+const logger = createLoggerInstance(process.env.NICC_LOG_LEVEL ?? 'info')
 
-const watchDir = path.join(process.cwd(), 'samples')
-const watcher = chokidar.watch(watchDir, {
-  persistent: true,
-  awaitWriteFinish: true,
-  // optimize watch
-  depth: 2,
-})
+const defaults = {
+  fullnessPercent: 0.8,
+  directorySize: 102400,
+  cronString: '30 * * * * *',
+}
 
-logger.info(`CACHE_DIR: ${watchDir}`)
-watcher.on('add', (path) => console.log(`File "${path}" has been added`))
+const main = async () => {
+  const cacheCleaner = new CacheCleaner({
+    logger: logger,
+    cronString: process.env.NICC_CRON_CONFIG ?? defaults.cronString,
+    fullnessPercent:
+      Number(process.env.NICC_FULLNESS_PERCENT) || defaults.fullnessPercent,
+    directorySize:
+      Number(process.env.NICC_MAX_CAPACITY) || defaults.directorySize,
+    directoryPath: process.env.NICC_IMAGE_CACHE_DIRECTORY as string,
+  })
+
+  await cacheCleaner.start()
+}
+
+main().catch((error) => logger.error(error))
