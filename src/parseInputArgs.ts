@@ -23,7 +23,7 @@ export const parseInputArgs = (): CacheCleanerConstructorParams => {
 
   const inputs = program.opts()
 
-  let config = {}
+  let config
   if (Object.keys(inputs).length === 0 || inputs?.fromEnv) {
     config = {
       cronString: process.env.NICC_CRON_CONFIG,
@@ -42,5 +42,3 @@ export const parseInputArgs = (): CacheCleanerConstructorParams => {
 
   return config as CacheCleanerConstructorParams
 }
-
-parseInputArgs()
