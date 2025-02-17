@@ -2,7 +2,7 @@ import type { Logger } from 'pino'
 
 import { Watcher } from './Watcher'
 
-interface CacheCleanerConstructorParams {
+export interface CacheCleanerConstructorParams {
   fullnessPercent?: number
   directorySize?: number
   cronString?: string
