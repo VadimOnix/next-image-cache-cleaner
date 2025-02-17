@@ -53,13 +53,15 @@ export class Watcher {
       }
 
       const deletedDirsCount = await this.#directoryWorker.deleteOutdatedFiles()
-      this.#logger.info(`🗑️Has been deleted ${deletedDirsCount} directories.`)
+      this.#logger.info(
+        `🗑️[CRON] Has been deleted ${deletedDirsCount} directories.`,
+      )
     })
   }
 
   async watchByLimit() {
     this.#logger.debug(
-      `Cleaning directory with fullness percent: ${this.#fullnessPercent}. Directory limit: ${this.#directorySize}`,
+      `Cleaning directory with fullness percent: ${this.#fullnessPercent}. Directory limit: ${this.#directorySize} bytes`,
     )
 
     const watcherConfig = {
@@ -79,32 +81,31 @@ export class Watcher {
 
   async #onAddFile(path: string) {
     this.#logger.debug(`File "${path}" has been created`)
-    if (await this.#needToEraseFiles()) {
+    const isNeedToErase = await this.#needToEraseFiles()
+    if (isNeedToErase) {
       const releasedBytes = await this.#directoryWorker.deleteFilesOverLimit(
         this.#limitSize,
       )
       this.#logger.info(
-        `🪽 ${this.#convertBytesToKilobytes(releasedBytes)} Kb has been released.`,
+        `🪽[LIMIT WATCHER] ${this.#convertBytesToKilobytes(releasedBytes)} Kb has been released.`,
       )
     }
   }
 
   async #needToEraseFiles() {
     const currentSize = await this.#directoryWorker.getDirectorySize()
-    if (currentSize >= this.#limitSize) {
-      return true
-    }
+    return currentSize >= this.#limitSize
   }
 
   get #limitSize(): number {
-    return this.#directorySize * this.#fullnessPercent
+    return Math.round(this.#directorySize * this.#fullnessPercent)
   }
 
   #convertKilobytesToBytes(kbytes: number) {
     return kbytes * 1024
   }
 
-  #convertBytesToKilobytes(kbytes: number) {
-    return kbytes * 1024
+  #convertBytesToKilobytes(bytes: number) {
+    return Math.ceil(bytes / 1024)
   }
 }

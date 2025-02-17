@@ -1,8 +1,8 @@
 import type { Dirent, Stats } from 'node:fs'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
-import fs from 'fs/promises'
 import PQueue from 'p-queue'
-import path from 'path'
 import type { Logger } from 'pino'
 
 import { DirectoryAnalyzerConstructorParams } from './types'
