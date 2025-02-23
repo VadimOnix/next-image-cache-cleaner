@@ -10,6 +10,12 @@ const config = {
     '@semantic-release/changelog',
     '@semantic-release/git',
     '@semantic-release/github',
+    [
+      '@semantic-release/npm',
+      {
+        npmPublish: true,
+      },
+    ],
   ],
 }
 
