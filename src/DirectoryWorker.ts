@@ -1,18 +1,18 @@
 /**
  * @file DirectoryWorker.ts
  * @description Provides the DirectoryWorker class to analyze directories, calculate total file sizes,
- * update the file list, and delete outdated or excess files. It uses Node.js's fs/promises API with the
- * recursive option and employs PQueue for concurrency control.
+ * update the file list, and delete outdated or excess files. The class leverages Node.js 22's fs/promises API,
+ * fs.opendir for streaming directory entries, and PQueue for controlled concurrency.
  */
 
-import type { Dirent, Stats } from 'node:fs'
+import type { Dirent } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
 import PQueue from 'p-queue'
 import type { Logger } from 'pino'
 
-import { DirectoryAnalyzerConstructorParams } from './types'
+import { DirectoryAnalyzerConstructorParams, FileItem } from './types'
 
 /**
  * Class to perform operations on a directory, such as calculating the total size, updating the file list,
@@ -20,11 +20,10 @@ import { DirectoryAnalyzerConstructorParams } from './types'
  */
 export class DirectoryWorker {
   #concurrencyLimit: number
-  #files: { entry: Dirent; stats: Stats }[]
+  #files: FileItem[]
   #queue: PQueue
   #totalSize: number
   #logger: Logger | Console
-
   readonly #directoryPath: string
 
   /**
@@ -45,7 +44,7 @@ export class DirectoryWorker {
   }
 
   /**
-   * Gets the concurrency limit.
+   * Gets the current concurrency limit.
    * @returns {number} The current concurrency limit.
    */
   get concurrencyLimit(): number {
@@ -70,108 +69,98 @@ export class DirectoryWorker {
   }
 
   /**
-   * Processes a single file to accumulate its size.
+   * Asynchronously traverses the given directory using fs.opendir with the recursive option and yields file entries along with their full path.
    * @private
-   * @param {string} filePath - The path to the file.
-   * @returns {Promise<void>}
+   * @param {string} dir - The directory to traverse.
+   * @returns {AsyncGenerator<{fullPath: string, entry: Dirent}, void, unknown>}
    */
-  async #processItem(filePath: string): Promise<void> {
-    const stats = await fs.stat(filePath)
-    if (stats.isFile()) {
-      this.#totalSize += stats.size
-    }
-  }
-
-  /**
-   * Recursively processes a directory to accumulate file sizes.
-   * Uses Node.js 22's fs.readdir with the recursive option.
-   * @private
-   * @param {string} directory - The path to the directory.
-   * @returns {Promise<void>}
-   */
-  async #processDirectory(directory: string): Promise<void> {
-    const entries = await fs.readdir(directory, {
-      withFileTypes: true,
-      recursive: true,
-    })
-
-    entries
-      .filter((entry) => entry.isFile())
-      .map((fileEntry) => path.join(fileEntry.parentPath, fileEntry.name))
-      .forEach((filePath) => {
-        this.#queue.add(() => this.#processItem(filePath))
-      })
-  }
-
-  /**
-   * Calculates the total size of files in the directory.
-   * @param {string} [pathToDirectory] - Optional path to a directory; defaults to the instance's directory path.
-   * @returns {Promise<number>} The total size of files in bytes.
-   */
-  async getDirectorySize(pathToDirectory?: string): Promise<number> {
-    const _dir = pathToDirectory || this.#directoryPath
-    this.#totalSize = 0
-
-    await this.#processDirectory(_dir)
-    await this.#queue.onIdle() // Wait for all queued tasks to complete
-
-    return this.#totalSize
-  }
-
-  /**
-   * Updates the internal list of files by reading the directory and its subdirectories.
-   * @param {string} [pathToDirectory] - Optional path to a directory; defaults to the instance's directory path.
-   * @returns {Promise<{entry: Dirent, stats: Stats}[]>} An array of file objects with their stats.
-   */
-  async updateAllFiles(
-    pathToDirectory?: string,
-  ): Promise<{ entry: Dirent; stats: Stats }[]> {
-    const _dir = pathToDirectory || this.#directoryPath
-    const entries = await fs.readdir(_dir, {
-      withFileTypes: true,
-      recursive: true,
-    })
-
-    this.#files = []
-
-    for (const entry of entries) {
+  async *#traverseDirectory(
+    dir: string,
+  ): AsyncGenerator<{ fullPath: string; entry: Dirent }> {
+    const dirHandle = await fs.opendir(dir, { recursive: true })
+    for await (const entry of dirHandle) {
       if (entry.isFile()) {
-        const filePath = path.join(entry.parentPath, entry.name)
-        const stats = await fs.stat(filePath)
-        this.#files.push({
-          entry,
-          stats,
-        })
+        const fullPath = path.join(entry.parentPath, entry.name)
+        yield { fullPath, entry }
       }
     }
+  }
 
+  /**
+   * Updates the internal list of files by traversing the directory and retrieving file statistics.
+   * @param {string} [pathToDirectory] - Optional path to a directory; defaults to the instance's directory path.
+   * @returns {Promise<FileItem[]>} An array of file items with their Dirent and Stats.
+   */
+  async updateAllFiles(pathToDirectory?: string): Promise<FileItem[]> {
+    const baseDir = pathToDirectory || this.#directoryPath
+    this.#files = []
+    const fileTasks: Promise<void>[] = []
+
+    for await (const { fullPath, entry } of this.#traverseDirectory(baseDir)) {
+      const task = this.#queue.add(async () => {
+        const stats = await fs.stat(fullPath)
+        this.#files.push({ fullPath, entry, stats })
+      })
+      fileTasks.push(task)
+    }
+
+    await Promise.all(fileTasks)
     return this.#files
   }
 
   /**
-   * Deletes files that are considered outdated based on their file name expiration data.
-   * @returns {Promise<number|null>} The number of directories deleted, or null if an error occurred.
+   * Calculates the total size of files in the directory using a streaming approach.
+   * @param {string} [pathToDirectory] - Optional path to a directory; defaults to the instance's directory path.
+   * @returns {Promise<number>} The total size of files in bytes.
+   */
+  async getDirectorySize(pathToDirectory?: string): Promise<number> {
+    const baseDir = pathToDirectory || this.#directoryPath
+    this.#totalSize = 0
+    const sizeTasks: Promise<void>[] = []
+
+    for await (const { fullPath } of this.#traverseDirectory(baseDir)) {
+      const task = this.#queue.add(async () => {
+        const stats = await fs.stat(fullPath)
+        if (stats.isFile()) {
+          this.#totalSize += stats.size
+        }
+      })
+      sizeTasks.push(task)
+    }
+
+    await Promise.all(sizeTasks)
+    return this.#totalSize
+  }
+
+  /**
+   * Deletes directory of file that are outdated based on expiration data parsed from their file names.
+   * Uses Promise.allSettled to handle individual deletion errors.
+   * @returns {Promise<number | null>} The number of directories deleted, or null if an error occurred.
    */
   async deleteOutdatedFiles(): Promise<number | null> {
     try {
-      const files = await this.updateAllFiles()
-      const promisesRmOperations: Promise<void>[] = []
+      await this.updateAllFiles()
+      const deletionPromises: Promise<unknown>[] = []
 
-      for (const file of files) {
+      for (const file of this.#files) {
         const expireAt = this.#parseFile(file.entry.name)
         if (expireAt && expireAt < Date.now()) {
-          promisesRmOperations.push(
+          deletionPromises.push(
             fs.rm(file.entry.parentPath, { recursive: true, force: true }),
           )
+          // Remove file from internal list
           this.#files = this.#files.filter((f) => f !== file)
           this.#logger.debug(
             `Directory "${file.entry.parentPath}" has been deleted.`,
           )
         }
       }
-      await Promise.all(promisesRmOperations)
 
-      return promisesRmOperations.length
+      const results = await Promise.allSettled(deletionPromises)
+      const deletedCount = results.filter(
+        (r) => r.status === 'fulfilled',
+      ).length
+      return deletedCount
     } catch (error) {
       this.#logger.error(error)
       return null
@@ -185,9 +174,8 @@ export class DirectoryWorker {
    */
   async deleteFilesOverLimit(limit: number): Promise<number> {
     const excessSize = this.totalSize - limit
-
     if (excessSize <= 0) {
-      this.#logger.debug(`No excess, return 0 bytes`)
+      this.#logger.debug(`No excess, returning 0 bytes`)
       return 0
     }
 
@@ -195,14 +183,12 @@ export class DirectoryWorker {
     const sortedFiles = this.#files
       .slice()
       .sort((a, b) => a.stats.birthtimeMs - b.stats.birthtimeMs)
-
-    // Accumulate files until the freed space meets or exceeds the excess size.
     let accumulatedSize = 0
-    const promisesRmOperations: Promise<void>[] = []
+    const deletionPromises: Promise<unknown>[] = []
 
     try {
       for (const file of sortedFiles) {
-        promisesRmOperations.push(
+        deletionPromises.push(
           fs.rm(file.entry.parentPath, { recursive: true, force: true }),
         )
         this.#files = this.#files.filter((f) => f !== file)
@@ -214,7 +200,7 @@ export class DirectoryWorker {
           break
         }
       }
-      await Promise.all(promisesRmOperations)
+      await Promise.allSettled(deletionPromises)
     } catch (error) {
       this.#logger.error(error)
     }
