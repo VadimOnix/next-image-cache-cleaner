@@ -1,4 +1,6 @@
 /// <reference types="vitest" />
+
+import shebang from 'rollup-plugin-add-shebang'
 import { defineConfig } from 'vite'
 import { coverageConfigDefaults } from 'vitest/config'
 
@@ -38,6 +40,12 @@ export default defineConfig({
           }
         },
       },
+      plugins: [
+        shebang({
+          include: 'dist/next-image-cache-cleaner.cjs',
+          shebang: '#!/usr/bin/env node',
+        }),
+      ],
     },
     target: 'node22',
     minify: false,
@@ -46,6 +54,8 @@ export default defineConfig({
     __VERSION__: JSON.stringify(packageJson.version),
   },
   test: {
+    environment: 'node',
+    globals: true,
     coverage: {
       enabled: true,
       exclude: ['./*.js', './dist', ...coverageConfigDefaults.exclude],
