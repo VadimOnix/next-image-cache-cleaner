@@ -1,6 +1,6 @@
 {
   "name": "next-image-cache-cleaner",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A utility for resolving high memory usage issues in the Next.js Image Optimizer module on Linux.",
   "main": "dist/next-image-cache-cleaner.cjs",
   "type": "module",
@@ -44,6 +44,10 @@
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/VadimOnix/next-image-cache-cleaner/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "tag": "latest"
   },
   "homepage": "https://github.com/VadimOnix/next-image-cache-cleaner#readme",
   "devDependencies": {
