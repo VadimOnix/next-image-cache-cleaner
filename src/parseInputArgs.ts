@@ -46,8 +46,8 @@ export const parseInputArgs = (): CacheCleanerConstructorParams => {
     config = {
       cronString: inputs.cron,
       directoryPath: inputs.dir,
-      directorySize: inputs.size,
-      fullnessPercent: inputs.percent,
+      directorySize: Number(inputs.size),
+      fullnessPercent: Number(inputs.percent),
     }
   }
 
