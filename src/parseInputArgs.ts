@@ -1,6 +1,6 @@
 import { Command } from 'commander'
 
-import type { CacheCleanerConstructorParams } from './CacheCleaner'
+import type { CacheCleanerConstructorParams } from './types'
 
 declare const __VERSION__: string
 
