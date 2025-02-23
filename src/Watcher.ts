@@ -20,6 +20,7 @@ export class Watcher {
   #directoryWorker: DirectoryWorker
   #logger: Logger | Console
   #watcher: FSWatcher | null
+  #cleanupTimer: NodeJS.Timeout | null = null
 
   constructor(params: WatcherConstructorParams) {
     this.#cronString = params.cronString
@@ -79,17 +80,30 @@ export class Watcher {
     this.#watcher.on('add', this.#onAddFile.bind(this))
   }
 
-  async #onAddFile(path: string) {
-    this.#logger.debug(`File "${path}" has been created`)
-    const isNeedToErase = await this.#needToEraseFiles()
-    if (isNeedToErase) {
-      const releasedBytes = await this.#directoryWorker.deleteFilesOverLimit(
-        this.#limitSize,
-      )
-      this.#logger.info(
-        `🪽[LIMIT WATCHER] ${this.#convertBytesToKilobytes(releasedBytes)} Kb has been released.`,
-      )
+  /**
+   * Event handler triggered when a new file is added.
+   * This function debounces cleanup checks to avoid frequent executions.
+   * @private
+   * @param {string} filePath - The path of the added file.
+   * @returns {Promise<void>}
+   */
+  #onAddFile = async (filePath: string): Promise<void> => {
+    this.#logger.debug(`File "${filePath}" has been created`)
+    // Debounce cleanup: clear any existing timer and set a new one.
+    if (this.#cleanupTimer) {
+      clearTimeout(this.#cleanupTimer)
     }
+    this.#cleanupTimer = setTimeout(async () => {
+      const isNeedToErase = await this.#needToEraseFiles()
+      if (isNeedToErase) {
+        const releasedBytes = await this.#directoryWorker.deleteFilesOverLimit(
+          this.#limitSize,
+        )
+        this.#logger.info(
+          `🪽[LIMIT WATCHER] ${this.#convertBytesToKilobytes(releasedBytes)} Kb has been released.`,
+        )
+      }
+    }, 500) // Debounce delay of 500 ms
   }
 
   async #needToEraseFiles() {
