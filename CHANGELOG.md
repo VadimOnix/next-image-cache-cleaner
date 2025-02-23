@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/VadimOnix/next-image-cache-cleaner/compare/v1.0.0...v1.1.0) (2025-02-23)
+
+
+### Features
+
+* **npm:** configure automatic publishing in npm ([fe7d5cb](https://github.com/VadimOnix/next-image-cache-cleaner/commit/fe7d5cb66a37bfa6c1d80c0f43641ac8fecd9a14))
+
 # 1.0.0 (2025-02-23)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "next-image-cache-cleaner",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A utility for resolving high memory usage issues in the Next.js Image Optimizer module on Linux.",
   "main": "dist/next-image-cache-cleaner.cjs",
   "type": "module",
