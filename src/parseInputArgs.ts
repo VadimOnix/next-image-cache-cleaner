@@ -1,9 +1,20 @@
 import { Command } from 'commander'
 
+import type { CacheCleanerConstructorParams } from './types'
+
 declare const __VERSION__: string
 
-import type { CacheCleanerConstructorParams } from './CacheCleaner'
-
+/**
+ * Parses input arguments and returns the configuration for the cache cleaner.
+ *
+ * If no command-line options are provided or if the `--fromEnv` flag is used, the configuration
+ * is extracted from environment variables. Otherwise, the configuration is taken from the
+ * provided command-line options.
+ *
+ * The returned object conforms to the CacheCleanerConstructorParams interface.
+ *
+ * @returns {CacheCleanerConstructorParams} The configuration for the cache cleaner.
+ */
 export const parseInputArgs = (): CacheCleanerConstructorParams => {
   const program = new Command()
 
@@ -13,11 +24,11 @@ export const parseInputArgs = (): CacheCleanerConstructorParams => {
     .version(__VERSION__ ?? 'debug')
 
   program
-    .option('--dir <string>', 'absolute path to image cache directory')
-    .option('--cron <sting>', 'cron configuration string')
-    .option('--size <number>', 'size folder in kilobytes')
-    .option('--percent <number>', 'fullness percent of cache directory')
-    .option('-e, --fromEnv', 'extract configuration from process.env')
+    .option('--dir <string>', 'Absolute path to the image cache directory')
+    .option('--cron <string>', 'Cron configuration string')
+    .option('--size <number>', 'Directory size in kilobytes')
+    .option('--percent <number>', 'Cache directory fullness percentage')
+    .option('-e, --fromEnv', 'Extract configuration from process.env')
 
   program.parse()
 
@@ -35,8 +46,8 @@ export const parseInputArgs = (): CacheCleanerConstructorParams => {
     config = {
       cronString: inputs.cron,
       directoryPath: inputs.dir,
-      directorySize: inputs.size,
-      fullnessPercent: inputs.percent,
+      directorySize: Number(inputs.size),
+      fullnessPercent: Number(inputs.percent),
     }
   }
 
