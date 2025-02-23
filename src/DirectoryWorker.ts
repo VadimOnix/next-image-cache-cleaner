@@ -31,13 +31,13 @@ export class DirectoryWorker {
    * @param {DirectoryAnalyzerConstructorParams} params - The parameters for the worker.
    */
   constructor(params: DirectoryAnalyzerConstructorParams) {
+    this.#queue =
+      params?.queue ??
+      new PQueue({ concurrency: params?.concurrencyLimit ?? 100 })
     this.#concurrencyLimit = params?.queue
       ? params.queue.concurrency
       : (params?.concurrencyLimit ?? 100)
     this.#directoryPath = params.directoryPath
-    this.#queue =
-      params?.queue ??
-      new PQueue({ concurrency: params?.concurrencyLimit ?? 100 })
     this.#totalSize = 0
     this.#files = []
     this.#logger = params.logger ?? console
@@ -52,14 +52,6 @@ export class DirectoryWorker {
   }
 
   /**
-   * Gets the last calculated total size of the directory.
-   * @returns {number} The total size of files in bytes.
-   */
-  get totalSize(): number {
-    return this.#totalSize
-  }
-
-  /**
    * Sets a new concurrency limit and updates the queue's concurrency.
    * @param {number} concurrencyLimit - The new concurrency limit.
    */
@@ -69,21 +61,11 @@ export class DirectoryWorker {
   }
 
   /**
-   * Asynchronously traverses the given directory using fs.opendir with the recursive option and yields file entries along with their full path.
-   * @private
-   * @param {string} dir - The directory to traverse.
-   * @returns {AsyncGenerator<{fullPath: string, entry: Dirent}, void, unknown>}
+   * Gets the last calculated total size of the directory.
+   * @returns {number} The total size of files in bytes.
    */
-  async *#traverseDirectory(
-    dir: string,
-  ): AsyncGenerator<{ fullPath: string; entry: Dirent }> {
-    const dirHandle = await fs.opendir(dir, { recursive: true })
-    for await (const entry of dirHandle) {
-      if (entry.isFile()) {
-        const fullPath = path.join(entry.parentPath, entry.name)
-        yield { fullPath, entry }
-      }
-    }
+  get totalSize(): number {
+    return this.#totalSize
   }
 
   /**
@@ -206,6 +188,24 @@ export class DirectoryWorker {
     }
 
     return accumulatedSize
+  }
+
+  /**
+   * Asynchronously traverses the given directory using fs.opendir with the recursive option and yields file entries along with their full path.
+   * @private
+   * @param {string} dir - The directory to traverse.
+   * @returns {AsyncGenerator<{fullPath: string, entry: Dirent}, void, unknown>}
+   */
+  async *#traverseDirectory(
+    dir: string,
+  ): AsyncGenerator<{ fullPath: string; entry: Dirent }> {
+    const dirHandle = await fs.opendir(dir, { recursive: true })
+    for await (const entry of dirHandle) {
+      if (entry.isFile()) {
+        const fullPath = path.join(entry.parentPath, entry.name)
+        yield { fullPath, entry }
+      }
+    }
   }
 
   /**

@@ -1,3 +1,4 @@
+/* v8 ignore next 22 */
 import 'dotenv/config'
 
 import { CacheCleaner } from './CacheCleaner'

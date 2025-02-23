@@ -14,6 +14,9 @@ export type DirectoryAnalyzerConstructorParams = {
   logger?: Logger | Console
 }
 
+/**
+ * Combine type for working in cache directory
+ */
 export interface FileItem {
   fullPath: string
   entry: Dirent
@@ -29,4 +32,15 @@ export interface WatcherConstructorParams {
   directoryKbSize: number
   fullnessPercent: number
   logger?: Logger
+}
+
+/**
+ * Parameters for constructing a CacheCleaner instance.
+ */
+export interface CacheCleanerConstructorParams {
+  fullnessPercent?: number
+  directorySize?: number
+  cronString?: string
+  logger?: Logger
+  directoryPath: string
 }
