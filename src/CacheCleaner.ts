@@ -108,10 +108,14 @@ export class CacheCleaner {
       )
     }
     if (Number.isNaN(directorySize)) {
-      throw new RangeError('Env variable NICC_MAX_CAPACITY must be a valid number!')
+      throw new RangeError(
+        'Env variable NICC_MAX_CAPACITY must be a valid number!',
+      )
     }
     if (Number.isNaN(fullnessPercent)) {
-      throw new RangeError('Env variable NICC_FULLNESS_PERCENT must be a valid number!')
+      throw new RangeError(
+        'Env variable NICC_FULLNESS_PERCENT must be a valid number!',
+      )
     }
     if (typeof directorySize === 'number' && directorySize <= 0) {
       throw new RangeError(

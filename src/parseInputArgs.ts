@@ -44,7 +44,8 @@ export const parseInputArgs = (): CacheCleanerConstructorParams => {
           ? Number(process.env.NICC_MAX_CAPACITY)
           : undefined,
       fullnessPercent:
-        process.env.NICC_FULLNESS_PERCENT && process.env.NICC_FULLNESS_PERCENT !== ''
+        process.env.NICC_FULLNESS_PERCENT &&
+        process.env.NICC_FULLNESS_PERCENT !== ''
           ? Number(process.env.NICC_FULLNESS_PERCENT)
           : undefined,
     }
