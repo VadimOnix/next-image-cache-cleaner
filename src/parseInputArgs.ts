@@ -36,18 +36,23 @@ export const parseInputArgs = (): CacheCleanerConstructorParams => {
 
   let config
   if (Object.keys(inputs).length === 0 || inputs?.fromEnv) {
+    const sizeEnv = Number(process.env.NICC_MAX_CAPACITY)
+    const percentEnv = Number(process.env.NICC_FULLNESS_PERCENT)
+
     config = {
       cronString: process.env.NICC_CRON_CONFIG,
       directoryPath: process.env.NICC_IMAGE_CACHE_DIRECTORY,
-      directorySize: Number(process.env.NICC_MAX_CAPACITY),
-      fullnessPercent: Number(process.env.NICC_FULLNESS_PERCENT),
+      directorySize: Number.isFinite(sizeEnv) ? sizeEnv : undefined,
+      fullnessPercent: Number.isFinite(percentEnv) ? percentEnv : undefined,
     }
   } else {
+    const sizeCli = Number(inputs.size)
+    const percentCli = Number(inputs.percent)
     config = {
       cronString: inputs.cron,
       directoryPath: inputs.dir,
-      directorySize: Number(inputs.size),
-      fullnessPercent: Number(inputs.percent),
+      directorySize: Number.isFinite(sizeCli) ? sizeCli : undefined,
+      fullnessPercent: Number.isFinite(percentCli) ? percentCli : undefined,
     }
   }
 

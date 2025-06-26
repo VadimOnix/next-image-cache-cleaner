@@ -127,6 +127,17 @@ describe('CacheCleaner', () => {
     ).toThrow('Env NICC_IMAGE_CACHE_DIRECTORY cannot be empty!')
   })
 
+  it('should not throw when numeric parameters are invalid', () => {
+    expect(
+      () =>
+        new CacheCleaner({
+          directoryPath: '/valid/path',
+          directorySize: Number('invalid'),
+          fullnessPercent: Number('invalid'),
+        } as unknown as CacheCleanerConstructorParams),
+    ).not.toThrow()
+  })
+
   // Tests for the start method and cleaning mode initialization
 
   it('should create an instance and call both watcher methods when both modes are activated', async () => {

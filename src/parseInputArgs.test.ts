@@ -78,4 +78,18 @@ describe('parseInputArgs', () => {
       fullnessPercent: 0.5,
     })
   })
+
+  it('should treat invalid numeric environment variables as undefined', () => {
+    process.argv = ['node', 'script']
+    process.env = {
+      NICC_IMAGE_CACHE_DIRECTORY: '/env/path/to/cache',
+      NICC_MAX_CAPACITY: 'not-a-number',
+      NICC_FULLNESS_PERCENT: '',
+    } as unknown as NodeJS.ProcessEnv
+
+    const config = parseInputArgs()
+
+    expect(config.directorySize).toBeUndefined()
+    expect(config.fullnessPercent).toBeUndefined()
+  })
 })
