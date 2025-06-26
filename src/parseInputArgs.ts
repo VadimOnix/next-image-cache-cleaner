@@ -45,31 +45,28 @@ export const parseInputArgs = (): CacheCleanerConstructorParams => {
     if (!process.env.NICC_IMAGE_CACHE_DIRECTORY) {
       throw new Error('NICC_IMAGE_CACHE_DIRECTORY is required')
     }
+
+    const sizeEnv = Number(process.env.NICC_MAX_CAPACITY)
+    const percentEnv = Number(process.env.NICC_FULLNESS_PERCENT)
+
     config = {
       cronString: process.env.NICC_CRON_CONFIG,
       directoryPath: process.env.NICC_IMAGE_CACHE_DIRECTORY,
-      directorySize: !isNaN(Number(process.env.NICC_MAX_CAPACITY))
-        ? Number(process.env.NICC_MAX_CAPACITY)
-        : undefined,
-      fullnessPercent: !isNaN(Number(process.env.NICC_FULLNESS_PERCENT))
-        ? Number(process.env.NICC_FULLNESS_PERCENT)
-        : undefined,
+      directorySize: Number.isFinite(sizeEnv) ? sizeEnv : undefined,
+      fullnessPercent: Number.isFinite(percentEnv) ? percentEnv : undefined,
     }
   } else {
     if (!inputs.dir) {
       throw new Error('--dir is required')
     }
+    const sizeCli = Number(inputs.size)
+    const percentCli = Number(inputs.percent)
     config = {
       cronString: inputs.cron,
       directoryPath: inputs.dir,
-      directorySize:
-        inputs.size !== undefined && inputs.size !== ''
-          ? Number(inputs.size)
-          : undefined,
-      fullnessPercent:
-        inputs.percent !== undefined && inputs.percent !== ''
-          ? Number(inputs.percent)
-          : undefined,
+
+      directorySize: Number.isFinite(sizeCli) ? sizeCli : undefined,
+      fullnessPercent: Number.isFinite(percentCli) ? percentCli : undefined,
     }
   }
 
