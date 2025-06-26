@@ -107,6 +107,12 @@ export class CacheCleaner {
         'Env variables NICC_FULLNESS_PERCENT and NICC_MAX_CAPACITY cannot be defined separately!',
       )
     }
+    if (Number.isNaN(directorySize)) {
+      throw new RangeError('Env variable NICC_MAX_CAPACITY must be a valid number!')
+    }
+    if (Number.isNaN(fullnessPercent)) {
+      throw new RangeError('Env variable NICC_FULLNESS_PERCENT must be a valid number!')
+    }
     if (typeof directorySize === 'number' && directorySize <= 0) {
       throw new RangeError(
         'Env variable NICC_MAX_CAPACITY must be greater than 0!',
@@ -125,7 +131,7 @@ export class CacheCleaner {
         'Env NICC_FULLNESS_PERCENT must be a fractional value in the range (0, 1)!',
       )
     }
-    if (directoryPath === '') {
+    if (!directoryPath) {
       throw new Error('Env NICC_IMAGE_CACHE_DIRECTORY cannot be empty!')
     }
   }
