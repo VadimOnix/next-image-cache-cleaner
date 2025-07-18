@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/VadimOnix/next-image-cache-cleaner/compare/v1.1.0...v1.1.1) (2025-07-18)
+
+
+### Bug Fixes
+
+* numeric env var parsing ([#17](https://github.com/VadimOnix/next-image-cache-cleaner/issues/17)) ([2041ddb](https://github.com/VadimOnix/next-image-cache-cleaner/commit/2041ddb88cb8c836ac29c59ef452c8b75821f016))
+
 # [1.1.0](https://github.com/VadimOnix/next-image-cache-cleaner/compare/v1.0.0...v1.1.0) (2025-02-23)
 
 ### Features
