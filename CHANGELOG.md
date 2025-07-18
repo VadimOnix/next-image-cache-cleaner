@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/VadimOnix/next-image-cache-cleaner/compare/v1.1.1...v1.1.2) (2025-07-18)
+
+
+### Bug Fixes
+
+* **logger:** handle missing pino-pretty dependency gracefully ([34ecd64](https://github.com/VadimOnix/next-image-cache-cleaner/commit/34ecd64a36b11fcd20a6d56406e60f503f723dfb))
+
 ## [1.1.1](https://github.com/VadimOnix/next-image-cache-cleaner/compare/v1.1.0...v1.1.1) (2025-07-18)
 
 
