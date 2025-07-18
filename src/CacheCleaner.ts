@@ -101,7 +101,10 @@ export class CacheCleaner {
     const sizeProvided = Number.isFinite(directorySize)
     const percentProvided = Number.isFinite(fullnessPercent)
 
-    if ((sizeProvided && !percentProvided) || (percentProvided && !sizeProvided)) {
+    if (
+      (sizeProvided && !percentProvided) ||
+      (percentProvided && !sizeProvided)
+    ) {
       throw new Error(
         'Env variables NICC_FULLNESS_PERCENT and NICC_MAX_CAPACITY cannot be defined separately!',
       )

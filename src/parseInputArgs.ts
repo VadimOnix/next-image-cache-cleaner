@@ -5,6 +5,20 @@ import type { CacheCleanerConstructorParams } from './types'
 declare const __VERSION__: string
 
 /**
+ * Parses an optional numeric value from a string or unknown input.
+ * Returns a finite number if the input is a non-empty string representing a valid number.
+ * Returns undefined if the input is undefined, an empty string, or not a valid finite number.
+ *
+ * @param {unknown} val - The value to parse (can be string, number, or undefined).
+ * @returns {number | undefined} The parsed number, or undefined if invalid or empty.
+ */
+function parseOptionalNumber(val: unknown): number | undefined {
+  if (typeof val !== 'string' || val.trim() === '') return undefined
+  const num = Number(val)
+  return Number.isFinite(num) ? num : undefined
+}
+
+/**
  * Parses input arguments and returns the configuration for the cache cleaner.
  *
  * If no command-line options are provided or if the `--fromEnv` flag is used, the configuration
@@ -46,27 +60,26 @@ export const parseInputArgs = (): CacheCleanerConstructorParams => {
       throw new Error('NICC_IMAGE_CACHE_DIRECTORY is required')
     }
 
-    const sizeEnv = Number(process.env.NICC_MAX_CAPACITY)
-    const percentEnv = Number(process.env.NICC_FULLNESS_PERCENT)
+    const sizeEnv = parseOptionalNumber(process.env.NICC_MAX_CAPACITY)
+    const percentEnv = parseOptionalNumber(process.env.NICC_FULLNESS_PERCENT)
 
     config = {
       cronString: process.env.NICC_CRON_CONFIG,
       directoryPath: process.env.NICC_IMAGE_CACHE_DIRECTORY,
-      directorySize: Number.isFinite(sizeEnv) ? sizeEnv : undefined,
-      fullnessPercent: Number.isFinite(percentEnv) ? percentEnv : undefined,
+      directorySize: sizeEnv,
+      fullnessPercent: percentEnv,
     }
   } else {
     if (!inputs.dir) {
       throw new Error('--dir is required')
     }
-    const sizeCli = Number(inputs.size)
-    const percentCli = Number(inputs.percent)
+    const sizeCli = parseOptionalNumber(inputs.size)
+    const percentCli = parseOptionalNumber(inputs.percent)
     config = {
       cronString: inputs.cron,
       directoryPath: inputs.dir,
-
-      directorySize: Number.isFinite(sizeCli) ? sizeCli : undefined,
-      fullnessPercent: Number.isFinite(percentCli) ? percentCli : undefined,
+      directorySize: sizeCli,
+      fullnessPercent: percentCli,
     }
   }
 

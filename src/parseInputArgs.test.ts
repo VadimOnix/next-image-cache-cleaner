@@ -17,8 +17,8 @@ describe('parseInputArgs', () => {
     process.env = {
       NICC_CRON_CONFIG: '*/5 * * * *',
       NICC_IMAGE_CACHE_DIRECTORY: '/env/path/to/cache',
-      NICC_MAX_CAPACITY: 2048,
-      NICC_FULLNESS_PERCENT: 0.75,
+      NICC_MAX_CAPACITY: '2048',
+      NICC_FULLNESS_PERCENT: '0.75',
     } as NodeJS.ProcessEnv
 
     const config = parseInputArgs()
@@ -65,8 +65,8 @@ describe('parseInputArgs', () => {
     process.env = {
       NICC_CRON_CONFIG: '*/10 * * * *',
       NICC_IMAGE_CACHE_DIRECTORY: '/env/alternative/path',
-      NICC_MAX_CAPACITY: 1024,
-      NICC_FULLNESS_PERCENT: 0.5,
+      NICC_MAX_CAPACITY: '1024',
+      NICC_FULLNESS_PERCENT: '0.5',
     } as unknown as NodeJS.ProcessEnv
 
     const config = parseInputArgs()

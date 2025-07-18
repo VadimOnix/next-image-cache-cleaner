@@ -127,7 +127,8 @@ describe('CacheCleaner', () => {
     ).toThrow('Env NICC_IMAGE_CACHE_DIRECTORY cannot be empty!')
   })
 
-  it('should not throw when numeric parameters are invalid', () => {
+  it('should throw a RangeError when numeric parameters are invalid', () => {
+    // Both parameters are invalid — should throw RangeError
     expect(
       () =>
         new CacheCleaner({
@@ -135,7 +136,28 @@ describe('CacheCleaner', () => {
           directorySize: Number('invalid'),
           fullnessPercent: Number('invalid'),
         } as unknown as CacheCleanerConstructorParams),
-    ).not.toThrow()
+    ).toThrow(RangeError)
+    // One parameter is valid, the other is not — should throw incompatibility error
+    expect(
+      () =>
+        new CacheCleaner({
+          directoryPath: '/valid/path',
+          directorySize: Number('invalid'),
+          fullnessPercent: 0.5,
+        } as unknown as CacheCleanerConstructorParams),
+    ).toThrow(
+      'Env variables NICC_FULLNESS_PERCENT and NICC_MAX_CAPACITY cannot be defined separately!',
+    )
+    expect(
+      () =>
+        new CacheCleaner({
+          directoryPath: '/valid/path',
+          directorySize: 1024,
+          fullnessPercent: Number('invalid'),
+        } as unknown as CacheCleanerConstructorParams),
+    ).toThrow(
+      'Env variables NICC_FULLNESS_PERCENT and NICC_MAX_CAPACITY cannot be defined separately!',
+    )
   })
 
   // Tests for the start method and cleaning mode initialization
