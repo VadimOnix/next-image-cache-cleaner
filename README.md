@@ -38,13 +38,19 @@ You can also pass additional parameters via the CLI:
 npx next-image-cache-cleaner --dir /path/to/.next/images --cron "*/5 * * * *" --size 1048576 --percent 0.8
 ```
 
-The tool accepts configuration either from command-line options or environment variables:
+The tool accepts configuration either from command-line options or environment variables. **All environment variables must be strings, as in real process.env.**
 
 - `NICC_CRON_CONFIG`: Cron string for scheduling cleanups.
 - `NICC_IMAGE_CACHE_DIRECTORY`: Absolute path to the image cache directory.
-- `NICC_MAX_CAPACITY`: Maximum allowed cache size (in bytes or kilobytes as configured).
-- `NICC_FULLNESS_PERCENT`: Percentage threshold that triggers cleanup.
+- `NICC_MAX_CAPACITY`: Maximum allowed cache size (in kilobytes, as a string, e.g. `'102400'`).
+- `NICC_FULLNESS_PERCENT`: Percentage threshold that triggers cleanup (as a string, e.g. `'0.8'`).
 - `NICC_LOG_LEVEL`: Logger level (available values: `debug` | `info` | `error` | `silent`)
+
+**Note:**
+
+- Empty strings or invalid numeric values for `NICC_MAX_CAPACITY` and `NICC_FULLNESS_PERCENT` will be ignored (treated as undefined).
+- If only one of `NICC_MAX_CAPACITY` or `NICC_FULLNESS_PERCENT` is set, the tool will throw an error. Both must be set together for limit-based cleanup.
+- Strict validation is enforced for all numeric parameters.
 
 ### With Docker
 
@@ -76,8 +82,8 @@ services:
       # Cron string
       NICC_CRON_CONFIG: '*/5 * * * *'
       # Max folder size in Kb
-      NICC_MAX_CAPACITY: '102400'
-      # Fullness percent of cache directory
+      NICC_MAX_CAPACITY: '102400' # must be a string
+      # Fullness percent of cache directory (string, e.g. '0.8')
       NICC_FULLNESS_PERCENT: '0.8'
     restart: always
     command:
@@ -93,11 +99,18 @@ volumes:
 - **Cron Mode:**
   The tool uses [node-cron](https://www.npmjs.com/package/node-cron) to schedule periodic cache cleaning tasks.
 - **Limit Mode:**
-  It monitors the directory size and, when the configured fullness percentage is exceeded, removes the oldest files to
-  free up space.
+  It monitors the directory size and, when the configured fullness percentage is exceeded, removes the oldest files to free up space. **Both `NICC_MAX_CAPACITY` and `NICC_FULLNESS_PERCENT` must be set as strings for this mode to work.**
 - **Watcher Mode:**
-  With [Chokidar](https://www.npmjs.com/package/chokidar), the tool listens for new files in the cache directory and
-  triggers cleanup when necessary. Debouncing is applied to prevent excessive cleanups.
+  With [Chokidar](https://www.npmjs.com/package/chokidar), the tool listens for new files in the cache directory and triggers cleanup when necessary. Debouncing is applied to prevent excessive cleanups.
+
+### Parameter Validation
+
+- All numeric parameters are strictly validated. If a value is missing, empty, or not a valid number, it will be ignored and the corresponding feature will be disabled or an error will be thrown (if required).
+- Environment variables must be provided as strings (as in real Node.js process.env). For example:
+  - `NICC_MAX_CAPACITY: '102400'` (not `102400`)
+  - `NICC_FULLNESS_PERCENT: '0.8'` (not `0.8`)
+
+If you provide an invalid value (e.g., `NICC_MAX_CAPACITY: 'not-a-number'`), it will be ignored and the tool will fall back to default behavior or throw an error if the parameter is required.
 
 ---
 

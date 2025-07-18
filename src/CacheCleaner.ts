@@ -98,10 +98,12 @@ export class CacheCleaner {
    */
   #validateParams(params: CacheCleanerConstructorParams): void {
     const { directorySize, cronString, fullnessPercent, directoryPath } = params
+    const sizeProvided = Number.isFinite(directorySize)
+    const percentProvided = Number.isFinite(fullnessPercent)
+
     if (
-      (typeof directorySize === 'number' &&
-        typeof fullnessPercent !== 'number') ||
-      (typeof fullnessPercent === 'number' && typeof directorySize !== 'number')
+      (sizeProvided && !percentProvided) ||
+      (percentProvided && !sizeProvided)
     ) {
       throw new Error(
         'Env variables NICC_FULLNESS_PERCENT and NICC_MAX_CAPACITY cannot be defined separately!',
@@ -117,7 +119,7 @@ export class CacheCleaner {
         'Env variable NICC_FULLNESS_PERCENT must be a valid number!',
       )
     }
-    if (typeof directorySize === 'number' && directorySize <= 0) {
+    if (sizeProvided && directorySize! <= 0) {
       throw new RangeError(
         'Env variable NICC_MAX_CAPACITY must be greater than 0!',
       )
@@ -127,10 +129,7 @@ export class CacheCleaner {
         'Incorrect cron string syntax! See https://github.com/node-cron/node-cron?tab=readme-ov-file#cron-syntax.',
       )
     }
-    if (
-      typeof fullnessPercent === 'number' &&
-      (fullnessPercent > 1 || fullnessPercent < 0)
-    ) {
+    if (percentProvided && (fullnessPercent! > 1 || fullnessPercent! < 0)) {
       throw new RangeError(
         'Env NICC_FULLNESS_PERCENT must be a fractional value in the range (0, 1)!',
       )
