@@ -103,6 +103,18 @@ volumes:
 - **Watcher Mode:**
   With [Chokidar](https://www.npmjs.com/package/chokidar), the tool listens for new files in the cache directory and triggers cleanup when necessary. Debouncing is applied to prevent excessive cleanups.
 
+**Pretty Logs:**
+
+If you want to see beautifully formatted logs with color highlighting, install `pino-pretty` as an additional dependency:
+
+```shell
+npm install pino-pretty
+# or
+yarn add pino-pretty
+```
+
+After installation, logs will be automatically formatted with colors and human-readable output. Without `pino-pretty`, logs are output in JSON format, which is suitable for production environments and monitoring systems.
+
 ### Parameter Validation
 
 - All numeric parameters are strictly validated. If a value is missing, empty, or not a valid number, it will be ignored and the corresponding feature will be disabled or an error will be thrown (if required).
